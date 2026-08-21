@@ -3,9 +3,9 @@
   columns-plus-promo-images-plus-best-sellers layout used across the store.
 
   Accepts:
-  - link: {Object} A menu link with child items (the columns come from
-    link.links; the first two child items are stacked into one column,
-    exactly like the reference "METALS / STONE" pairing)
+  - link: {Object} A menu link with child items. Each child becomes its own
+    text column, in nav order, except "Stone" (always moved last, next to
+    the images) and "Best Sellers" (broken out into the pill row instead).
   - section_settings: {Object} Section settings for colors and styling
   - enhancement_block: {Object} Optional block of type "luxury_mega_menu"
     whose settings.nav_label matches link.title. When present, its
@@ -26,6 +26,51 @@
     assign show_media = true
   endif
 
+  # If the store's navigation already has a "Best Sellers" child item, use its
+  # real links to drive the bottom pill row (and leave it out of the text
+  # columns, so it isn't shown twice with two different sets of values).
+  assign bestsellers_group = blank
+  for childlink in groups
+    assign lower_title = childlink.title | downcase | strip
+    if lower_title == 'best sellers' or lower_title == 'bestsellers' or lower_title == 'best seller'
+      assign bestsellers_group = childlink
+    endif
+  endfor
+
+  assign show_bestsellers_row = false
+  assign bestsellers_heading = ''
+  if bestsellers_group != blank and bestsellers_group.links != blank
+    assign show_bestsellers_row = true
+    assign bestsellers_heading = bestsellers_group.title
+  elsif show_media and es.button1_label != blank
+    assign show_bestsellers_row = true
+    assign bestsellers_heading = es.buttons_heading
+  endif
+
+  # "Stone" is pulled out of its natural position and rendered last, so it
+  # sits as the final text column right next to the promo images.
+  assign stone_group = blank
+  for childlink in groups
+    assign lower_title = childlink.title | downcase | strip
+    if lower_title == 'stone'
+      assign stone_group = childlink
+    endif
+  endfor
+
+  # Menus with fewer text columns have room to spare, so give them a second
+  # promo image (and size both images down a bit to fit).
+  assign text_column_count = groups.size
+  if bestsellers_group != blank
+    assign text_column_count = text_column_count | minus: 1
+  endif
+
+  assign image_count = 1
+  assign image_width = 480
+  if text_column_count <= 3
+    assign image_count = 2
+    assign image_width = 340
+  endif
+
   # Styling: use the enhancement block's settings when available, otherwise
   # fall back to the same neutral defaults as the rest of the menu.
   assign panel_bg = es.panel_background | default: '#ffffff'
@@ -40,9 +85,12 @@
   assign link_spacing = es.link_spacing | default: 10
   assign divider_color = es.divider_color | default: '#e6e6e6'
   assign column_gap = es.column_gap | default: 40
+  # Keeps columns visually even: any group with more links than this shows a
+  # "View all" link to the rest instead of the full uneven-length list.
+  assign column_link_cap = 5
   assign group_spacing = es.group_spacing | default: 20
   assign section_spacing = es.section_spacing | default: 30
-  assign content_max_width = es.content_max_width | default: 1400
+  assign content_max_width = es.content_max_width | default: 1500
   assign padding_v = es.panel_padding_vertical | default: 40
   assign padding_h = es.panel_padding_horizontal | default: 40
   assign button_text_color = es.button_text_color | default: '#000000'
@@ -95,12 +143,14 @@
     top: 100%;
     width: 100vw;
     max-width: 100vw;
-    transform: translateX(-50%) translateY(-10px);
+    transform: translateX(-50%) translateY(-8px);
     background-color: {{ panel_bg }};
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-top: 1px solid {{ divider_color }};
+    box-shadow: 0 16px 32px -12px rgba(0, 0, 0, 0.18);
     opacity: 0;
     visibility: hidden;
-    transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease;
+    pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s ease;
     z-index: 1000;
   }
 
@@ -108,6 +158,7 @@
   .luxury-mm-{{ uid }}:focus-within .luxury-mm-panel-{{ uid }} {
     opacity: 1;
     visibility: visible;
+    pointer-events: auto;
     transform: translateX(-50%) translateY(0);
   }
 
@@ -120,14 +171,20 @@
   .luxury-mm-grid-{{ uid }} {
     display: flex;
     align-items: flex-start;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: {{ column_gap }}px;
   }
 
   .luxury-mm-textcols-{{ uid }} {
     display: flex;
     flex-wrap: wrap;
+    /* Lets this block shrink and wrap its own columns onto a second row
+       under a squeeze, instead of forcing the (non-shrinking) images block
+       below it onto a new line. */
+    min-width: 0;
+    flex: 1 1 auto;
     gap: {{ column_gap }}px;
+    row-gap: {{ section_spacing }}px;
   }
 
   .luxury-mm-col-{{ uid }} {
@@ -143,12 +200,6 @@
     bottom: 0;
     width: 1px;
     background-color: {{ divider_color }};
-  }
-
-  .luxury-mm-group-{{ uid }}:not(:last-child) {
-    padding-bottom: {{ group_spacing }}px;
-    margin-bottom: {{ group_spacing }}px;
-    border-bottom: 1px solid {{ divider_color }};
   }
 
   .luxury-mm-heading-{{ uid }} {
@@ -186,35 +237,48 @@
     color: {{ link_hover }};
   }
 
+  .luxury-mm-viewall-{{ uid }} {
+    color: {{ heading_color }} !important;
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
   .luxury-mm-images-{{ uid }} {
     display: flex;
-    gap: 20px;
-    flex: 1 1 auto;
-    justify-content: flex-end;
+    gap: 24px;
+    flex: 0 0 auto;
     padding-left: {{ column_gap }}px;
     border-left: 1px solid {{ divider_color }};
-    min-width: 260px;
   }
 
   .luxury-mm-image-item-{{ uid }} {
-    flex: 1 1 0;
-    max-width: 280px;
+    flex: 0 0 auto;
+    width: {{ image_width }}px;
   }
 
   .luxury-mm-image-item-{{ uid }} a {
     display: block;
+    overflow: hidden;
   }
 
+  /* Fixed (not aspect-ratio-driven) height so the image band lines up with
+     the text columns, which run 5 links deep plus a heading. */
   .luxury-mm-image-item-{{ uid }} img {
     width: 100%;
-    aspect-ratio: 4 / 5;
+    height: 230px;
     object-fit: cover;
     display: block;
+    transition: transform 0.5s ease;
+  }
+
+  .luxury-mm-image-item-{{ uid }} a:hover img {
+    transform: scale(1.04);
   }
 
   .luxury-mm-placeholder-{{ uid }} {
     width: 100%;
-    aspect-ratio: 4 / 5;
+    height: 230px;
     background-color: #f4f4f4;
     display: flex;
     align-items: center;
@@ -274,10 +338,16 @@
 
     .luxury-mm-images-{{ uid }} {
       width: 100%;
+      flex-wrap: wrap;
       padding-left: 0;
       border-left: none;
       padding-top: {{ section_spacing }}px;
       border-top: 1px solid {{ divider_color }};
+    }
+
+    .luxury-mm-image-item-{{ uid }} {
+      width: 100%;
+      max-width: {{ image_width }}px;
     }
   }
 
@@ -303,14 +373,31 @@
       <div class="luxury-mm-content-{{ uid }}">
         <div class="luxury-mm-grid-{{ uid }}">
           <div class="luxury-mm-textcols-{{ uid }}">
-            {%- comment -%} First column: up to two stacked groups (e.g. Metals + Stone) {%- endcomment -%}
-            <div class="luxury-mm-col-{{ uid }}">
-              {%- for childlink in groups limit: 2 -%}
-                <div class="luxury-mm-group-{{ uid }}">
+            {%- comment -%}
+              "Best Sellers" (when present) is broken out into the pill row
+              below, so it's left out of the text columns to avoid showing it
+              twice. "Stone" is pulled out of its natural position too, and
+              rendered last below so it lands right next to the images.
+            {%- endcomment -%}
+
+            {%- comment -%} One column per group, in nav order {%- endcomment -%}
+            {%- for childlink in groups -%}
+              {%- liquid
+                assign item_lower = childlink.title | downcase | strip
+                assign skip_item = false
+                if item_lower == 'stone'
+                  assign skip_item = true
+                endif
+                if bestsellers_group != blank and childlink.title == bestsellers_group.title
+                  assign skip_item = true
+                endif
+              -%}
+              {%- unless skip_item -%}
+                <div class="luxury-mm-col-{{ uid }}">
                   <h3 class="luxury-mm-heading-{{ uid }}">{{ childlink.title | escape }}</h3>
                   {%- if childlink.links != blank -%}
                     <ul class="luxury-mm-links-{{ uid }}">
-                      {%- for grandchildlink in childlink.links -%}
+                      {%- for grandchildlink in childlink.links limit: column_link_cap -%}
                         <li>
                           <a
                             href="{{ grandchildlink.url }}"
@@ -320,6 +407,9 @@
                           </a>
                         </li>
                       {%- endfor -%}
+                      {%- if childlink.links.size > column_link_cap -%}
+                        <li><a href="{{ childlink.url }}" class="luxury-mm-viewall-{{ uid }}">View all</a></li>
+                      {%- endif -%}
                     </ul>
                   {%- else -%}
                     <ul class="luxury-mm-links-{{ uid }}">
@@ -327,16 +417,16 @@
                     </ul>
                   {%- endif -%}
                 </div>
-              {%- endfor -%}
-            </div>
+              {%- endunless -%}
+            {%- endfor -%}
 
-            {%- comment -%} Remaining groups: one column each {%- endcomment -%}
-            {%- for childlink in groups offset: 2 -%}
+            {%- comment -%} Stone column: always last, right before the images {%- endcomment -%}
+            {%- if stone_group != blank -%}
               <div class="luxury-mm-col-{{ uid }}">
-                <h3 class="luxury-mm-heading-{{ uid }}">{{ childlink.title | escape }}</h3>
-                {%- if childlink.links != blank -%}
+                <h3 class="luxury-mm-heading-{{ uid }}">{{ stone_group.title | escape }}</h3>
+                {%- if stone_group.links != blank -%}
                   <ul class="luxury-mm-links-{{ uid }}">
-                    {%- for grandchildlink in childlink.links -%}
+                    {%- for grandchildlink in stone_group.links limit: column_link_cap -%}
                       <li>
                         <a
                           href="{{ grandchildlink.url }}"
@@ -346,19 +436,23 @@
                         </a>
                       </li>
                     {%- endfor -%}
+                    {%- if stone_group.links.size > column_link_cap -%}
+                      <li><a href="{{ stone_group.url }}" class="luxury-mm-viewall-{{ uid }}">View all</a></li>
+                    {%- endif -%}
                   </ul>
                 {%- else -%}
                   <ul class="luxury-mm-links-{{ uid }}">
-                    <li><a href="{{ childlink.url }}">View All</a></li>
+                    <li><a href="{{ stone_group.url }}">View All</a></li>
                   </ul>
                 {%- endif -%}
               </div>
-            {%- endfor -%}
+            {%- endif -%}
           </div>
 
           {%- if show_media -%}
             <div class="luxury-mm-images-{{ uid }}">
-              {%- for n in (1..2) -%}
+              {%- comment -%} One image for busier menus, two when there's room to spare {%- endcomment -%}
+              {%- for n in (1..image_count) -%}
                 {%- liquid
                   assign image_key = 'featured_image' | append: n
                   assign image_url_key = 'featured_image' | append: n | append: '_url'
@@ -370,7 +464,7 @@
                     <img
                       src="{{ image | image_url: width: 600 }}"
                       srcset="{{ image | image_url: width: 400 }} 400w, {{ image | image_url: width: 600 }} 600w, {{ image | image_url: width: 900 }} 900w"
-                      sizes="(min-width: 990px) 20vw, 100vw"
+                      sizes="(min-width: 990px) 360px, 100vw"
                       alt="{{ image.alt | escape }}"
                       loading="lazy"
                       width="{{ image.width }}"
@@ -388,23 +482,31 @@
           {%- endif -%}
         </div>
 
-        {%- if show_media and es.buttons_heading != blank or show_media and es.button1_label != blank -%}
+        {%- if show_bestsellers_row -%}
           <div class="luxury-mm-rule-{{ uid }}"></div>
 
-          {% if es.buttons_heading != blank %}
-            <h3 class="luxury-mm-buttons-heading-{{ uid }}">{{ es.buttons_heading }}</h3>
+          {% if bestsellers_heading != blank %}
+            <h3 class="luxury-mm-buttons-heading-{{ uid }}">{{ bestsellers_heading | escape }}</h3>
           {% endif %}
 
           <div class="luxury-mm-buttons-{{ uid }}">
-            {% for i in (1..5) %}
-              {%- liquid
-                assign label_key = 'button' | append: i | append: '_label'
-                assign url_key = 'button' | append: i | append: '_url'
-              -%}
-              {% if es[label_key] != blank %}
-                <a href="{{ es[url_key] | default: '#' }}" class="luxury-mm-button-{{ uid }}">{{ es[label_key] }}</a>
-              {% endif %}
-            {% endfor %}
+            {%- if bestsellers_group != blank -%}
+              {%- comment -%} Pull the pill labels straight from the "Best Sellers" nav item {%- endcomment -%}
+              {%- for grandchildlink in bestsellers_group.links -%}
+                <a href="{{ grandchildlink.url }}" class="luxury-mm-button-{{ uid }}">{{ grandchildlink.title | escape }}</a>
+              {%- endfor -%}
+            {%- else -%}
+              {%- comment -%} Fallback: no matching nav item, use the block's configured buttons {%- endcomment -%}
+              {% for i in (1..5) %}
+                {%- liquid
+                  assign label_key = 'button' | append: i | append: '_label'
+                  assign url_key = 'button' | append: i | append: '_url'
+                -%}
+                {% if es[label_key] != blank %}
+                  <a href="{{ es[url_key] | default: '#' }}" class="luxury-mm-button-{{ uid }}">{{ es[label_key] }}</a>
+                {% endif %}
+              {% endfor %}
+            {%- endif -%}
           </div>
         {%- endif -%}
       </div>
