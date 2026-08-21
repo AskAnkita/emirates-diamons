@@ -64,11 +64,6 @@
 
   capture menu
     render 'header-menu-snippet', header_settings: sec_stts, blocks: section.blocks, menu_gap: sec_stts.menu_gap
-    for lux in section.blocks
-      if lux.type == 'luxury_mega_menu'
-        render 'luxury-mega-menu', block: lux
-      endif
-    endfor
   endcapture
 
   capture mobile_menu

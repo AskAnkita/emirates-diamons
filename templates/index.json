@@ -401,8 +401,6 @@
         }
       },
       "block_order": [
-        "group_44Jqkz",
-        "group_aKNtfp",
         "group_FB8GJK"
       ],
       "custom_css": [
@@ -447,10 +445,6 @@
     },
     "1786969313861348a2": {
       "type": "_blocks",
-      "blocks": {},
-      "block_order": [
-        "ai_gen_block_4a9a88f_Yn3k93"
-      ],
       "settings": {}
     },
     "marquee_PKziKG": {
@@ -899,6 +893,7 @@
         "group_LLgCRk": {
           "type": "group",
           "name": "t:names.group",
+          "disabled": true,
           "settings": {
             "link": "",
             "open_in_new_tab": false,
@@ -2712,7 +2707,6 @@
             }
           },
           "block_order": [
-            "text_3knaBV",
             "text_MRa4pw"
           ]
         },
@@ -6455,10 +6449,7 @@
                     "padding-inline-start": 8,
                     "padding-inline-end": 8
                   },
-                  "blocks": {},
-                  "block_order": [
-                    "card_product_button_flex_ikEeKy"
-                  ]
+                  "blocks": {}
                 }
               },
               "block_order": [
@@ -9639,8 +9630,7 @@
                     }
                   },
                   "block_order": [
-                    "text_XHdXfW",
-                    "text_Fq3MFL"
+                    "text_XHdXfW"
                   ]
                 }
               },
@@ -9906,8 +9896,7 @@
                     }
                   },
                   "block_order": [
-                    "text_WTEhXc",
-                    "text_6m8gMJ"
+                    "text_WTEhXc"
                   ]
                 }
               },
@@ -10173,8 +10162,7 @@
                     }
                   },
                   "block_order": [
-                    "text_9aeDbF",
-                    "text_fgFpCJ"
+                    "text_9aeDbF"
                   ]
                 }
               },
@@ -10440,8 +10428,7 @@
                     }
                   },
                   "block_order": [
-                    "text_tGawRD",
-                    "text_YAPnTY"
+                    "text_tGawRD"
                   ]
                 }
               },

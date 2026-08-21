@@ -1,0 +1,413 @@
+{%- comment -%}
+  Renders the luxury mega menu dynamically from Shopify menu data, in the
+  columns-plus-promo-images-plus-best-sellers layout used across the store.
+
+  Accepts:
+  - link: {Object} A menu link with child items (the columns come from
+    link.links; the first two child items are stacked into one column,
+    exactly like the reference "METALS / STONE" pairing)
+  - section_settings: {Object} Section settings for colors and styling
+  - enhancement_block: {Object} Optional block of type "luxury_mega_menu"
+    whose settings.nav_label matches link.title. When present, its
+    featured images and "best sellers" row are appended to the panel;
+    when absent, the panel renders as a plain column list.
+
+  Usage:
+    {% render 'luxury-mega-menu-dynamic', link: link, section_settings: section.settings, enhancement_block: enhancement_block %}
+{%- endcomment -%}
+
+{%- liquid
+  assign uid = link.handle | replace: '-', '' | replace: '_', '' | downcase
+  assign groups = link.links
+  assign es = enhancement_block.settings
+
+  assign show_media = false
+  if enhancement_block != blank
+    assign show_media = true
+  endif
+
+  # Styling: use the enhancement block's settings when available, otherwise
+  # fall back to the same neutral defaults as the rest of the menu.
+  assign panel_bg = es.panel_background | default: '#ffffff'
+  assign heading_color = es.heading_color | default: '#000000'
+  assign heading_size = es.heading_font_size | default: 12
+  assign heading_weight = es.heading_font_weight | default: 700
+  assign heading_spacing = es.heading_letter_spacing | default: 1
+  assign heading_margin = es.heading_margin_bottom | default: 15
+  assign link_color = es.link_color | default: '#666666'
+  assign link_hover = es.link_hover_color | default: '#000000'
+  assign link_size = es.link_font_size | default: 14
+  assign link_spacing = es.link_spacing | default: 10
+  assign divider_color = es.divider_color | default: '#e6e6e6'
+  assign column_gap = es.column_gap | default: 40
+  assign group_spacing = es.group_spacing | default: 20
+  assign section_spacing = es.section_spacing | default: 30
+  assign content_max_width = es.content_max_width | default: 1400
+  assign padding_v = es.panel_padding_vertical | default: 40
+  assign padding_h = es.panel_padding_horizontal | default: 40
+  assign button_text_color = es.button_text_color | default: '#000000'
+  assign button_border_color = es.button_border_color | default: '#000000'
+  assign button_hover_text = es.button_hover_text_color | default: '#ffffff'
+  assign button_hover_bg = es.button_hover_background | default: '#000000'
+  assign button_hover_border = es.button_hover_border_color | default: '#000000'
+  assign button_font_size = es.button_font_size | default: 13
+  assign button_padding_v = es.button_padding_vertical | default: 10
+  assign button_padding_h = es.button_padding_horizontal | default: 20
+  assign button_border_width = es.button_border_width | default: 1
+  assign button_radius = es.button_border_radius | default: 0
+  assign button_gap = es.button_gap | default: 12
+
+  assign divider_half = column_gap | divided_by: 2
+-%}
+
+{% style %}
+  /* The menu wrapper is the positioning context so every panel is
+     centred on the nav rather than on its own trigger. */
+  .header__menu-wrapper {
+    position: relative;
+  }
+
+  .luxury-mm-{{ uid }} {
+    display: inline-block;
+    position: static;
+  }
+
+  .luxury-mm-trigger-{{ uid }} {
+    position: relative;
+    display: inline-block;
+  }
+
+  .luxury-mm-trigger-{{ uid }} > a {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    padding: 10px 15px;
+    font-family: var(--button-type-font-link, inherit);
+    font-size: var(--button-font-size-link, 1.4rem);
+    font-weight: var(--button-font-weight-link, inherit);
+    text-transform: var(--text-transform, none);
+    white-space: nowrap;
+  }
+
+  .luxury-mm-panel-{{ uid }} {
+    position: absolute;
+    left: 50%;
+    top: 100%;
+    width: 100vw;
+    max-width: 100vw;
+    transform: translateX(-50%) translateY(-10px);
+    background-color: {{ panel_bg }};
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease;
+    z-index: 1000;
+  }
+
+  .luxury-mm-{{ uid }}:hover .luxury-mm-panel-{{ uid }},
+  .luxury-mm-{{ uid }}:focus-within .luxury-mm-panel-{{ uid }} {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .luxury-mm-content-{{ uid }} {
+    max-width: {{ content_max_width }}px;
+    margin: 0 auto;
+    padding: {{ padding_v }}px {{ padding_h }}px;
+  }
+
+  .luxury-mm-grid-{{ uid }} {
+    display: flex;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: {{ column_gap }}px;
+  }
+
+  .luxury-mm-textcols-{{ uid }} {
+    display: flex;
+    flex-wrap: wrap;
+    gap: {{ column_gap }}px;
+  }
+
+  .luxury-mm-col-{{ uid }} {
+    position: relative;
+    min-width: 150px;
+  }
+
+  .luxury-mm-col-{{ uid }}:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: -{{ divider_half }}px;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background-color: {{ divider_color }};
+  }
+
+  .luxury-mm-group-{{ uid }}:not(:last-child) {
+    padding-bottom: {{ group_spacing }}px;
+    margin-bottom: {{ group_spacing }}px;
+    border-bottom: 1px solid {{ divider_color }};
+  }
+
+  .luxury-mm-heading-{{ uid }} {
+    font-weight: {{ heading_weight }};
+    text-transform: uppercase;
+    font-size: {{ heading_size }}px;
+    color: {{ heading_color }};
+    margin: 0 0 {{ heading_margin }}px;
+    letter-spacing: {{ heading_spacing }}px;
+  }
+
+  .luxury-mm-links-{{ uid }} {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .luxury-mm-links-{{ uid }} li {
+    margin-bottom: {{ link_spacing }}px;
+  }
+
+  .luxury-mm-links-{{ uid }} li:last-child {
+    margin-bottom: 0;
+  }
+
+  .luxury-mm-links-{{ uid }} a {
+    text-decoration: none;
+    color: {{ link_color }};
+    font-size: {{ link_size }}px;
+    transition: color 0.2s ease;
+    display: block;
+  }
+
+  .luxury-mm-links-{{ uid }} a:hover {
+    color: {{ link_hover }};
+  }
+
+  .luxury-mm-images-{{ uid }} {
+    display: flex;
+    gap: 20px;
+    flex: 1 1 auto;
+    justify-content: flex-end;
+    padding-left: {{ column_gap }}px;
+    border-left: 1px solid {{ divider_color }};
+    min-width: 260px;
+  }
+
+  .luxury-mm-image-item-{{ uid }} {
+    flex: 1 1 0;
+    max-width: 280px;
+  }
+
+  .luxury-mm-image-item-{{ uid }} a {
+    display: block;
+  }
+
+  .luxury-mm-image-item-{{ uid }} img {
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    display: block;
+  }
+
+  .luxury-mm-placeholder-{{ uid }} {
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    background-color: #f4f4f4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .luxury-mm-placeholder-{{ uid }} svg {
+    width: 30%;
+    height: 30%;
+    opacity: 0.3;
+  }
+
+  .luxury-mm-rule-{{ uid }} {
+    height: 1px;
+    background-color: {{ divider_color }};
+    margin: {{ section_spacing }}px 0;
+  }
+
+  .luxury-mm-buttons-heading-{{ uid }} {
+    font-weight: {{ heading_weight }};
+    text-transform: uppercase;
+    font-size: {{ heading_size }}px;
+    color: {{ heading_color }};
+    letter-spacing: {{ heading_spacing }}px;
+    margin: 0 0 {{ heading_margin }}px;
+  }
+
+  .luxury-mm-buttons-{{ uid }} {
+    display: flex;
+    gap: {{ button_gap }}px;
+    flex-wrap: wrap;
+  }
+
+  .luxury-mm-button-{{ uid }} {
+    padding: {{ button_padding_v }}px {{ button_padding_h }}px;
+    border: {{ button_border_width }}px solid {{ button_border_color }};
+    background-color: transparent;
+    color: {{ button_text_color }};
+    text-decoration: none;
+    font-size: {{ button_font_size }}px;
+    transition: all 0.2s ease;
+    border-radius: {{ button_radius }}px;
+    display: inline-block;
+    white-space: nowrap;
+  }
+
+  .luxury-mm-button-{{ uid }}:hover {
+    background-color: {{ button_hover_bg }};
+    color: {{ button_hover_text }};
+    border-color: {{ button_hover_border }};
+  }
+
+  @media screen and (max-width: 1199px) {
+    .luxury-mm-grid-{{ uid }} {
+      flex-direction: column;
+    }
+
+    .luxury-mm-images-{{ uid }} {
+      width: 100%;
+      padding-left: 0;
+      border-left: none;
+      padding-top: {{ section_spacing }}px;
+      border-top: 1px solid {{ divider_color }};
+    }
+  }
+
+  @media screen and (max-width: 989px) {
+    .luxury-mm-{{ uid }} {
+      display: none;
+    }
+  }
+{% endstyle %}
+
+<div class="luxury-mm-{{ uid }}">
+  <div class="luxury-mm-trigger-{{ uid }}">
+    <a
+      href="{{ link.url }}"
+      {% if link.current %}aria-current="page"{% endif %}
+    >
+      {{ link.title | escape }}
+    </a>
+  </div>
+
+  {%- if groups != blank -%}
+    <div class="luxury-mm-panel-{{ uid }}">
+      <div class="luxury-mm-content-{{ uid }}">
+        <div class="luxury-mm-grid-{{ uid }}">
+          <div class="luxury-mm-textcols-{{ uid }}">
+            {%- comment -%} First column: up to two stacked groups (e.g. Metals + Stone) {%- endcomment -%}
+            <div class="luxury-mm-col-{{ uid }}">
+              {%- for childlink in groups limit: 2 -%}
+                <div class="luxury-mm-group-{{ uid }}">
+                  <h3 class="luxury-mm-heading-{{ uid }}">{{ childlink.title | escape }}</h3>
+                  {%- if childlink.links != blank -%}
+                    <ul class="luxury-mm-links-{{ uid }}">
+                      {%- for grandchildlink in childlink.links -%}
+                        <li>
+                          <a
+                            href="{{ grandchildlink.url }}"
+                            {% if grandchildlink.current %}aria-current="page"{% endif %}
+                          >
+                            {{ grandchildlink.title | escape }}
+                          </a>
+                        </li>
+                      {%- endfor -%}
+                    </ul>
+                  {%- else -%}
+                    <ul class="luxury-mm-links-{{ uid }}">
+                      <li><a href="{{ childlink.url }}">View All</a></li>
+                    </ul>
+                  {%- endif -%}
+                </div>
+              {%- endfor -%}
+            </div>
+
+            {%- comment -%} Remaining groups: one column each {%- endcomment -%}
+            {%- for childlink in groups offset: 2 -%}
+              <div class="luxury-mm-col-{{ uid }}">
+                <h3 class="luxury-mm-heading-{{ uid }}">{{ childlink.title | escape }}</h3>
+                {%- if childlink.links != blank -%}
+                  <ul class="luxury-mm-links-{{ uid }}">
+                    {%- for grandchildlink in childlink.links -%}
+                      <li>
+                        <a
+                          href="{{ grandchildlink.url }}"
+                          {% if grandchildlink.current %}aria-current="page"{% endif %}
+                        >
+                          {{ grandchildlink.title | escape }}
+                        </a>
+                      </li>
+                    {%- endfor -%}
+                  </ul>
+                {%- else -%}
+                  <ul class="luxury-mm-links-{{ uid }}">
+                    <li><a href="{{ childlink.url }}">View All</a></li>
+                  </ul>
+                {%- endif -%}
+              </div>
+            {%- endfor -%}
+          </div>
+
+          {%- if show_media -%}
+            <div class="luxury-mm-images-{{ uid }}">
+              {%- for n in (1..2) -%}
+                {%- liquid
+                  assign image_key = 'featured_image' | append: n
+                  assign image_url_key = 'featured_image' | append: n | append: '_url'
+                  assign image = es[image_key]
+                -%}
+                <div class="luxury-mm-image-item-{{ uid }}">
+                  {% if es[image_url_key] != blank %}<a href="{{ es[image_url_key] }}">{% endif %}
+                  {% if image != blank %}
+                    <img
+                      src="{{ image | image_url: width: 600 }}"
+                      srcset="{{ image | image_url: width: 400 }} 400w, {{ image | image_url: width: 600 }} 600w, {{ image | image_url: width: 900 }} 900w"
+                      sizes="(min-width: 990px) 20vw, 100vw"
+                      alt="{{ image.alt | escape }}"
+                      loading="lazy"
+                      width="{{ image.width }}"
+                      height="{{ image.height }}"
+                    >
+                  {% else %}
+                    <div class="luxury-mm-placeholder-{{ uid }}">
+                      {{ 'image' | placeholder_svg_tag }}
+                    </div>
+                  {% endif %}
+                  {% if es[image_url_key] != blank %}</a>{% endif %}
+                </div>
+              {%- endfor -%}
+            </div>
+          {%- endif -%}
+        </div>
+
+        {%- if show_media and es.buttons_heading != blank or show_media and es.button1_label != blank -%}
+          <div class="luxury-mm-rule-{{ uid }}"></div>
+
+          {% if es.buttons_heading != blank %}
+            <h3 class="luxury-mm-buttons-heading-{{ uid }}">{{ es.buttons_heading }}</h3>
+          {% endif %}
+
+          <div class="luxury-mm-buttons-{{ uid }}">
+            {% for i in (1..5) %}
+              {%- liquid
+                assign label_key = 'button' | append: i | append: '_label'
+                assign url_key = 'button' | append: i | append: '_url'
+              -%}
+              {% if es[label_key] != blank %}
+                <a href="{{ es[url_key] | default: '#' }}" class="luxury-mm-button-{{ uid }}">{{ es[label_key] }}</a>
+              {% endif %}
+            {% endfor %}
+          </div>
+        {%- endif -%}
+      </div>
+    </div>
+  {%- endif -%}
+</div>
