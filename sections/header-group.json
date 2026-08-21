@@ -973,10 +973,11 @@
         "luxury_mega_menu_mGFJfm"
       ],
       "custom_css": [
-        ".header-block.header-logo.grid__item.block {margin: 11px 0px;}",
-        ".header__row--bottom .header__column--center {flex-direction: column; align-items: center; gap: 12px; /* space between logo and menu */}",
-        " /* Custom: make header icons smaller than the default minimum */.header__row svg {width: 16px !important; height: 16px !important;}",
-        ".header[transparent]:not(:hover):not([data-sticky-state='active']){--header-bg-color:rgba(0,0,0,.28)}"
+        ".header-block.header-logo.grid__item.block{margin:11px 0}",
+        ".header__row--bottom .header__column--center{flex-direction:column;align-items:center;gap:12px}",
+        ".header__row svg{width:16px!important;height:16px!important}",
+        ".header[transparent]:not(:hover):not([data-sticky-state='active']) .header__row{background-color:rgba(0,0,0,.55)!important;color:#fff!important}",
+        ".header[transparent]:is(:hover,[data-sticky-state='active']) .header__row{color:#183e40!important}"
       ],
       "name": "Header- Electronics",
       "settings": {
