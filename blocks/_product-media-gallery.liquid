@@ -719,8 +719,7 @@
                       media: media,
                       sizes: '100vw',
                       loading: 'lazy',
-                      is_main_product_media: forloop.first,
-                      data_max_resolution: media | image_url: width: media.width
+                      is_main_product_media: forloop.first
                     -%}
                   </drag-zoom-wrapper>
                 {% else %}
@@ -756,8 +755,7 @@
                         media: media,
                         sizes: '100vw',
                         loading: 'lazy',
-                        is_main_product_media: index_first,
-                        data_max_resolution: media | image_url: width: media.width
+                        is_main_product_media: index_first
                       -%}
                     </drag-zoom-wrapper>
                   {% else %}
