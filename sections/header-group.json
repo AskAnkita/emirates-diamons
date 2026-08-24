@@ -973,11 +973,11 @@
         "luxury_mega_menu_mGFJfm"
       ],
       "custom_css": [
-        ".header-block.header-logo.grid__item.block{margin:11px 0}",
-        ".header__row--bottom .header__column--center{flex-direction:column;align-items:center;gap:12px}",
-        ".header__row svg{width:16px!important;height:16px!important}",
-        ".header[transparent] .header__row{background-color:#ffffff!important;color:#000000!important;border-bottom-color:#a9a9a9!important}",
-        ".header[transparent]:is(:hover,[data-sticky-state='active']) .header__row{color:#183e40!important}"
+        ".header-block.header-logo.grid__item.block {margin: 11px 0;}",
+        ".header__row--bottom .header__column--center {flex-direction: column; align-items: center; gap: 12px;}",
+        ".header__row svg {width: 16px !important; height: 16px !important;}",
+        ".header[transparent] .header__row {background-color: #ffffff !important; color: #000000 !important; border-bottom-color: #a9a9a9 !important;}",
+        ".header[transparent]:is(:hover, [data-sticky-state=\"active\"]) .header__row {color: #183e40 !important;}"
       ],
       "name": "Header- Electronics",
       "settings": {
@@ -1048,7 +1048,7 @@
         "header_utility_wrap": "nowrap",
         "section_width": "full-width",
         "page_width_custom": 1570,
-        "enable_sticky_header": "always",
+        "enable_sticky_header": "never",
         "divider_width": 1,
         "divider_size": "full-width",
         "border_width": 1,
