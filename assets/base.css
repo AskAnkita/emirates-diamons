@@ -16247,7 +16247,7 @@ body:has(> #header-group:empty) {
   background-color: transparent;
   z-index: var(--layer-overlay);
 
-  &[transparent='not-sticky'][data-sticky-state='active'] {
+  &[transparent='not-sticky'][data-sticky-state='active']:not([data-hero-visible='true']) {
     --header-logo-opacity: 1;
     --header-logo-inverse-opacity: 0;
     --header-bg-color: unset;
@@ -16270,6 +16270,15 @@ body:has(> #header-group:empty) {
       background-position-x: left;
       background-size: 100% 1px;
     }
+  }
+
+  /* Keep the overlay transparent/inverse look while the hero section below
+     the header is still on screen, even though the sticky wrapper has
+     technically already "stuck" (data-sticky-state="active"). Only once the
+     hero has fully scrolled away does the rule above take over and the
+     header gets its solid background back. */
+  &[transparent='not-sticky'][data-hero-visible='true'] {
+    transition: background-color var(--animation-speed) ease;
   }
 
   @media screen and (hover: hover) {

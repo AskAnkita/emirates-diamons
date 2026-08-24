@@ -24,13 +24,41 @@ class HeaderComponent extends HTMLElement {
         document.addEventListener("scroll", theme.utils.rafThrottle(this.handleWindowScroll.bind(this)));
       }
     }
+
+    if (this.hasAttribute("transparent")) {
+      this.observeHeroVisibility();
+    }
   }
 
   disconnectedCallback() {
     this.resizeObserver.disconnect();
     this.intersectionObserver?.disconnect();
+    this.heroObserver?.disconnect();
     document.removeEventListener("scroll", this.handleWindowScroll.bind(this));
     document.body.style.setProperty("--header-height", "0px");
+  }
+
+  // Keeps the transparent overlay look for as long as the section right
+  // after the header (the homepage hero/category grid) is still visible,
+  // regardless of whether the header has already "stuck" to the top.
+  observeHeroVisibility() {
+    if (this.heroObserver) return;
+
+    const hero = this.parentElement?.nextElementSibling;
+
+    if (!(hero instanceof HTMLElement)) {
+      this.dataset.heroVisible = "false";
+      return;
+    }
+
+    this.dataset.heroVisible = "true";
+
+    this.heroObserver = new IntersectionObserver(([entry]) => {
+      if (!entry) return;
+      this.dataset.heroVisible = entry.isIntersecting ? "true" : "false";
+    }, { threshold: 0 });
+
+    this.heroObserver.observe(hero);
   }
 
   // setHeaderHeight() {

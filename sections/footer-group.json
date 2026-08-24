@@ -1042,6 +1042,7 @@
         "group_QrgMd4",
         "multicolumn_Ubij8w"
       ],
+      "disabled": true,
       "custom_css": [],
       "name": "t:names.multicolumn",
       "settings": {
