@@ -12360,13 +12360,6 @@ product-recommendations:has([data-has-recommendations='false']) {
   }
 
   &:hover {
-    .button-overflow:after {
-      transform: translateY(0);
-    }
-    .button-text-main {
-      transform: translateY(-100%);
-      opacity: 0;
-    }
     &:after {
       transform: translate(-50%, -50%) rotate3d(0, 0, 1, 0) translate3d(0, 0, 0);
     }
