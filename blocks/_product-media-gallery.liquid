@@ -474,15 +474,9 @@
     show_variant_media_grouped: show_variant_media_grouped
   %}
 
-  {% if bl_stts.show_skin_tone_controller %}
-    <div class="skin-tone-controller__dock">
-      <skin-tone-controller class="skin-tone-controller" aria-label="Skin tone controller">
-        <span class="skin-tone-controller__label">Skin tone</span>
-        <input class="skin-tone-controller__input" type="range" min="0" max="100" value="50" aria-label="Adjust skin tone">
-        <span class="skin-tone-controller__value" aria-live="polite">Natural</span>
-      </skin-tone-controller>
-    </div>
-  {% endif %}
+  {%- liquid
+    assign skin_tone_index = bl_stts.skin_tone_image_index | default: 2
+  -%}
 
   {% if bl_stts.media_presentation == 'grid' %}
     <ul
@@ -547,6 +541,12 @@
                 {%- render 'product-media', media: media, sizes: media_sizes, is_main_product_media: forloop.first, bl_stts: bl_stts -%}
               {%- endif-%}
             {% endif %}
+            {%- if bl_stts.show_skin_tone_controller
+              and media.media_type == 'image'
+              and forloop.index == skin_tone_index
+            -%}
+              {%- render 'skin-tone-controller' -%}
+            {%- endif -%}
           </li>
         {% elsif media.media_type != 'video' and media.media_type != 'external_video' and bl_stts.video_type == 'dialog' %}
           {% if index == 0 %}
@@ -618,6 +618,13 @@
                 -%}
               </div>
             {% endif %}
+            {%- assign skin_tone_position = index | plus: 1 -%}
+            {%- if bl_stts.show_skin_tone_controller
+              and media.media_type == 'image'
+              and skin_tone_position == skin_tone_index
+            -%}
+              {%- render 'skin-tone-controller' -%}
+            {%- endif -%}
           </li>
           {% assign index = index | plus: 1 %}
         {% endif %}
@@ -1146,6 +1153,17 @@
       "label": "Show skin tone controller",
       "info": "Adds an image preview control for products photographed on a hand or model.",
       "default": false
+    },
+    {
+      "type": "range",
+      "id": "skin_tone_image_index",
+      "label": "Skin tone image",
+      "info": "Which gallery image the control applies to. 1 = first image. Only that image is affected.",
+      "min": 1,
+      "max": 12,
+      "step": 1,
+      "default": 2,
+      "visible_if": "{{ block.settings.show_skin_tone_controller }}"
     },
     {
       "type": "select",

@@ -5,9 +5,11 @@ if (!customElements.get('skin-tone-controller')) {
       connectedCallback() {
         this.input = this.querySelector('input[type="range"]');
         this.valueLabel = this.querySelector('.skin-tone-controller__value');
-        this.gallery = this.closest('media-gallery');
+        // Scope to the single media container this control lives in, so the
+        // filter can never reach the rest of the gallery.
+        this.container = this.closest('.media-gallery__grid-item') || this.parentElement;
 
-        if (!this.input || !this.gallery) return;
+        if (!this.input || !this.container) return;
 
         this.input.addEventListener('input', () => this.update());
         this.update();
@@ -25,20 +27,9 @@ if (!customElements.get('skin-tone-controller')) {
         const filter = filters[Math.min(Math.floor(value / 20), filters.length - 1)];
         const label = value < 20 ? 'Light' : value < 40 ? 'Fair' : value < 60 ? 'Natural' : value < 80 ? 'Tan' : 'Deep';
 
-        const allImages = Array.from(this.gallery.querySelectorAll('.product-media-container--image img'));
-        // Prefer only the hand/model shots so the plain product shot isn't tinted too.
-        // Tag those images' alt text with a word like "hand" or "model" to scope the effect.
-        const modelImages = allImages.filter((image) => /hand|model|worn|lifestyle/i.test(image.alt || ''));
-        const targets = modelImages.length ? modelImages : allImages;
-
-        targets.forEach((image) => {
+        this.container.querySelectorAll('img').forEach((image) => {
           image.style.filter = filter;
         });
-        allImages
-          .filter((image) => !targets.includes(image))
-          .forEach((image) => {
-            image.style.filter = '';
-          });
         this.valueLabel.textContent = label;
       }
     }

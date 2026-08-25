@@ -1,15 +1,7 @@
-media-gallery:has(.skin-tone-controller__dock) {
+/* The control is rendered inside ONE media container, so it anchors to that
+   image alone rather than floating over the whole gallery. */
+.media-gallery__grid-item:has(> .skin-tone-controller) {
   position: relative;
-}
-
-/* Zero-height sticky rail: pins to the viewport while the gallery is on screen,
-   so the control stays reachable no matter how tall the media grid gets. */
-.skin-tone-controller__dock {
-  position: sticky;
-  z-index: 3;
-  top: 0;
-  height: 0;
-  overflow: visible;
 }
 
 .skin-tone-controller {
@@ -23,8 +15,9 @@ media-gallery:has(.skin-tone-controller__dock) {
   );
   position: absolute;
   z-index: 2;
-  top: 38vh;
+  top: 50%;
   right: 1.6rem;
+  transform: translateY(-50%);
   display: flex;
   width: 3.8rem;
   min-height: 15rem;
@@ -107,7 +100,6 @@ media-gallery:has(.skin-tone-controller__dock) {
 
 @media screen and (max-width: 749px) {
   .skin-tone-controller {
-    top: 55vh;
     right: 1rem;
     min-height: 13rem;
   }
