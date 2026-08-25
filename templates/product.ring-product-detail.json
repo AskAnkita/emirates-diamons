@@ -38,6 +38,7 @@
           "type": "_product-media-gallery",
           "static": true,
           "settings": {
+            "show_skin_tone_controller": true,
             "media_presentation": "grid",
             "media_columns": "two",
             "image_gap": 10,

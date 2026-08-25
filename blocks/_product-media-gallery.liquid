@@ -5,6 +5,10 @@
 {%- elsif bl_stts.zoom and bl_stts.zoom_type == 'inline' -%}
   <script id="EnableZoomOnHover-main" src="{{ 'zoom-inline.js' | asset_url }}" defer="defer"></script>
 {%- endif -%}
+{%- if bl_stts.show_skin_tone_controller -%}
+  {{ 'component-skin-tone-controller.css' | asset_url | stylesheet_tag }}
+  <script src="{{ 'skin-tone-controller.js' | asset_url }}" defer="defer"></script>
+{%- endif -%}
 
 {%- liquid
   assign selected_product = closest.product
@@ -469,6 +473,14 @@
     class_badge: class_badge,
     show_variant_media_grouped: show_variant_media_grouped
   %}
+
+  {% if bl_stts.show_skin_tone_controller %}
+    <skin-tone-controller class="skin-tone-controller" aria-label="Skin tone controller">
+      <span class="skin-tone-controller__label">Skin tone</span>
+      <input class="skin-tone-controller__input" type="range" min="0" max="100" value="50" aria-label="Adjust skin tone">
+      <span class="skin-tone-controller__value" aria-live="polite">Natural</span>
+    </skin-tone-controller>
+  {% endif %}
 
   {% if bl_stts.media_presentation == 'grid' %}
     <ul
@@ -1125,6 +1137,13 @@
     {
       "type": "header",
       "content": "t:content.media"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_skin_tone_controller",
+      "label": "Show skin tone controller",
+      "info": "Adds an image preview control for products photographed on a hand or model.",
+      "default": false
     },
     {
       "type": "select",
