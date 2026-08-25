@@ -475,11 +475,13 @@
   %}
 
   {% if bl_stts.show_skin_tone_controller %}
-    <skin-tone-controller class="skin-tone-controller" aria-label="Skin tone controller">
-      <span class="skin-tone-controller__label">Skin tone</span>
-      <input class="skin-tone-controller__input" type="range" min="0" max="100" value="50" aria-label="Adjust skin tone">
-      <span class="skin-tone-controller__value" aria-live="polite">Natural</span>
-    </skin-tone-controller>
+    <div class="skin-tone-controller__dock">
+      <skin-tone-controller class="skin-tone-controller" aria-label="Skin tone controller">
+        <span class="skin-tone-controller__label">Skin tone</span>
+        <input class="skin-tone-controller__input" type="range" min="0" max="100" value="50" aria-label="Adjust skin tone">
+        <span class="skin-tone-controller__value" aria-live="polite">Natural</span>
+      </skin-tone-controller>
+    </div>
   {% endif %}
 
   {% if bl_stts.media_presentation == 'grid' %}

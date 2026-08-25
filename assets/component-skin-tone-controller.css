@@ -1,5 +1,15 @@
-media-gallery:has(.skin-tone-controller) {
+media-gallery:has(.skin-tone-controller__dock) {
   position: relative;
+}
+
+/* Zero-height sticky rail: pins to the viewport while the gallery is on screen,
+   so the control stays reachable no matter how tall the media grid gets. */
+.skin-tone-controller__dock {
+  position: sticky;
+  z-index: 3;
+  top: 0;
+  height: 0;
+  overflow: visible;
 }
 
 .skin-tone-controller {
@@ -13,7 +23,7 @@ media-gallery:has(.skin-tone-controller) {
   );
   position: absolute;
   z-index: 2;
-  top: 50%;
+  top: 38vh;
   right: 1.6rem;
   display: flex;
   width: 3.8rem;
@@ -26,7 +36,6 @@ media-gallery:has(.skin-tone-controller) {
   border-radius: 2rem;
   background: rgb(var(--color-background-rgb) / 0.88);
   box-shadow: 0 0.5rem 1.8rem rgb(0 0 0 / 0.12);
-  transform: translateY(-50%);
   backdrop-filter: blur(0.8rem);
 }
 
@@ -98,10 +107,8 @@ media-gallery:has(.skin-tone-controller) {
 
 @media screen and (max-width: 749px) {
   .skin-tone-controller {
-    top: auto;
+    top: 55vh;
     right: 1rem;
-    bottom: 1rem;
     min-height: 13rem;
-    transform: none;
   }
 }
